@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Car Price Predictor</title>
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body class="bg-dark">
+<div class="container mt-50">
+    <div class="card">
+        <div class="card-header text-center">
+            <h1>Welcome to Car Price Predictor</h1>
+        </div>
+        <div class="card-body">
+            <p class="text-center">This app predicts the price of a car you want to sell. Try filling the details below:</p>
+            <form method="post" onsubmit="return send_data(event);">
+                <div class="form-group">
+                    <label>Select the company:</label>
+                    <select class="form-control" id="company" name="company" required onchange="loadCarModels()">
+                        {% for company in companies %}
+                        <option value="{{ company }}">{{ company }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Select the model:</label>
+                    <select class="form-control" id="car_models" name="car_models" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Select Year of Purchase:</label>
+                    <select class="form-control" id="year" name="year" required>
+                        {% for year in years %}
+                        <option value="{{ year }}">{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Select the Fuel Type:</label>
+                    <select class="form-control" id="fuel_type" name="fuel_type" required>
+                        {% for fuel in fuel_types %}
+                        <option value="{{ fuel }}">{{ fuel }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Enter the Number of Kilometres:</label>
+                    <input type="number" class="form-control" id="kilo_driven" name="kilo_driven" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Predict Price</button>
+            </form>
+            <div class="text-center mt-4">
+                <h4 id="prediction"></h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function loadCarModels() {
+        const company = document.getElementById('company').value;
+        const carModels = document.getElementById('car_models');
+        carModels.innerHTML = "";  // Clear previous options
+        {% for company in companies %}
+            if (company === "{{ company }}") {
+                {% for model in car_models %}
+                    var option = document.createElement("option");
+                    option.value = "{{ model }}";
+                    option.text = "{{ model }}";
+                    carModels.add(option);
+                {% endfor %}
+            }
+        {% endfor %}
+    }
+
+    function send_data(event) {
+        event.preventDefault(); // Prevent default form submission
+
+        const formData = new FormData(document.querySelector('form'));
+        $.ajax({
+            type: 'POST',
+            url: '/predict',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                document.getElementById('prediction').innerText = response.prediction;
+            },
+            error: function(error) {
+                document.getElementById('prediction').innerText = error.responseJSON.error;
+            }
+        });
+    }
+</script>
+</body>
+</html>
